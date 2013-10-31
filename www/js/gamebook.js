@@ -1,14 +1,20 @@
 function Book()
 {
 	var currentPage = null;
-	var _knowledges = {};		//
-	var _variables = {};		// %
-	var _objects = {};		// @
-	var _specialObjects = {};	// $
-	var _skills = {};		// #
+	var _jumpStack = [];
+
+	// § page visited
+	// % variables
+	// @ objects
+	// $ special objects
+	// # skills
+	//   knowledges
+	var _knowledges = {};
 
 	var xmlDoc;
 	var _directory;
+	var _menuButtons = [];
+	var _menuVisible = false;
 	var TAG = {
 		StartPage: "startPage",
 		JumpPage: "jumpPage",
@@ -44,11 +50,29 @@ function Book()
 				var xmlS = new XMLSerializer();
 				var root = xmlDoc.firstChild;
 
-				//Pagina del personaggio: xmlDoc.firstChild.getAttribute(TAG.CharacterPage);
 				DefaultDestination.Jump = "jumpDestination";
 				if(root.getAttribute(TAG.JumpPage))
 				{
 					DefaultDestination.Jump = root.getAttribute(TAG.JumpPage);
+				}
+
+				//Menu
+				_menuButtons = [];
+				var xPath = "/book/menu";
+				var nodes = xmlDoc.evaluate(xPath, xmlDoc, null, XPathResult.ANY_TYPE, null);
+				if(nodes)
+				{
+					var menu = nodes.iterateNext();
+					if(menu)
+					{
+						for(var i = 0; i < menu.childNodes.length; i++)
+						{
+							if(menu.childNodes[i].tagName == "button")
+							{
+								_menuButtons.push({ Page: menu.childNodes[i].getAttribute("page"), Image: menu.childNodes[i].getAttribute("image"), Text: menu.childNodes[i].textContent });
+							}
+						}
+					}
 				}
 
 				if(saveData)
@@ -70,10 +94,7 @@ function Book()
 	var _restart = function()
 	{
 		_knowledges = {};
-		_variables = {};
-		_objects = {};
-		_specialObjects = {};
-		_skills = {};
+		_jumpStack = [];
 		currentPage = null;
 
 		_showPage(xmlDoc.firstChild.getAttribute(TAG.StartPage));
@@ -108,7 +129,7 @@ function Book()
 		var root;
 		var image;
 
-		_applyModifications(page + " =§CurrentPage(" + page + ")");
+		_applyModifications("§" + page);
 		root = _findXMLPageTag(xmlDoc, page);
 		_applyModifications(_getAttribute(root, TAG.Modifications));
 
@@ -160,7 +181,11 @@ function Book()
 						{
 							text.page += '<div class="image"><img width="100%" src="' + _directory + image + '"></img></div>';
 						}
-						text.page += '<div class="' + node.tagName + '">' + _replaceVariables(node.textContent) + '</div>';
+						var tmp = _replaceVariables(node.textContent);
+						if(tmp)
+						{
+							text.page += '<div class="' + node.tagName + '">' + tmp + '</div>';
+						}
 					}
 				}
 			break;
@@ -175,13 +200,17 @@ function Book()
 						{
 							destination = DefaultDestination.Jump;
 						}
-
-						var modificationsNew = "=§PreviousPage(" + page + ")";
-						if(modifications)
-						{
-							modificationsNew += " " + modifications;
-						}
-						text.jumps += '<div class="jump" onclick="Book.gotoPage(\'' + destination + '\', ' + _addQuote(modificationsNew) + ');">' + _replaceVariables(node.textContent) + '</div>';
+						text.jumps += '<div class="jump" onclick="Book.jumpToPage(\'' + destination + '\', ' + _addQuote(modifications) + ');">' + _replaceVariables(node.textContent) + '</div>';
+					}
+				}
+			break;
+			case "back":
+				if(_checkRequirements(_getAttribute(node, TAG.Requirements)))
+				{
+					var modifications = _getAttribute(node, TAG.Modifications);
+					if(_checkModificheRequirements(modifications))
+					{
+						text.jumps += '<div class="jump" onclick="Book.backToPage(' + _addQuote(modifications) + ');">' + _replaceVariables(node.textContent) + '</div>';
 					}
 				}
 			break;
@@ -195,11 +224,11 @@ function Book()
 						var newPage = _getDestination(_getAttribute(node, TAG.Destination), page);
 						if(node.tagName == "modify" || newPage == page)
 						{
-							text[node.tagName] += '<div class="' + node.tagName + '" onclick="Book.gotoPage(\'' + page + '\', ' + _addQuote(modifications) + ')">' + _replaceVariables(node.textContent) + '</div>';
+							text[node.tagName] += '<div class="' + node.tagName + '" onclick="Book.goToPage(\'' + page + '\', ' + _addQuote(modifications) + ')">' + _replaceVariables(node.textContent) + '</div>';
 						}
 						else
 						{
-							text.navigator += '<div class="goto" onclick="Book.gotoPage(\'' + newPage + '\', ' + _addQuote(modifications) + ')">' + _replaceVariables(node.textContent) + '</div>';
+							text.navigator += '<div class="goto" onclick="Book.goToPage(\'' + newPage + '\', ' + _addQuote(modifications) + ')">' + _replaceVariables(node.textContent) + '</div>';
 						}
 					}
 				}
@@ -237,10 +266,24 @@ function Book()
 		}
 	}
 
-	var _gotoPage = function(page, modifications)
+	var _goToPage = function(page, modifications)
 	{
 		_applyModifications(modifications);
 		_showPage(page);
+	}
+
+	var _jumpToPage = function(page, modifications)
+	{
+		_jumpStack.push({ PreviousPage: currentPage, Type: "jump" });
+		_applyModifications(modifications);
+		_showPage(page);
+	}
+
+	var _backToPage = function(modifications)
+	{
+		var jump = _jumpStack.pop();
+		_applyModifications(modifications);
+		_showPage(jump.PreviousPage);
 	}
 
 	// name(x)  ->  >= x
@@ -305,7 +348,7 @@ function Book()
 				var oldValue = _getValue(tmp[i].name.substr(1));
 				if(oldValue == null)
 				{
-					oldValue = tmp[i].value;
+					oldValue = -tmp[i].value;
 				}
 				else
 				{
@@ -335,51 +378,12 @@ function Book()
 
 	var _setValue = function(name, value)
 	{
-		if(name[0] == '%')
-		{
-			_variables[name] = value;
-		}
-		else if(name[0] == '#')
-		{
-			_skills[name] = value;
-		}
-		else if(name[0] == '$')
-		{
-			_specialObjects[name] = value;
-		}
-		else if(name[0] == '@')
-		{
-			_objects[name] = value;
-		}
-		else
-		{
-			_knowledges[name] = value;
-		}
+		_knowledges[name] = value;
 	}
 
 	var _getValue = function(name)
 	{
-		var ret;
-		if(name[0] == '%')
-		{
-			ret = _variables[name];
-		}
-		else if(name[0] == '#')
-		{
-			ret = _skills[name];
-		}
-		else if(name[0] == '$')
-		{
-			ret = _specialObjects[name];
-		}
-		else if(name[0] == '@')
-		{
-			ret = _objects[name];
-		}
-		else
-		{
-			ret = _knowledges[name];
-		}
+		var ret = _knowledges[name];
 		if(ret)
 		{
 			return ret;
@@ -456,10 +460,7 @@ function Book()
 	{
 		var tmp = "<state currentPage=\'" + currentPage + "\'>\n";
 		tmp += "<knowledges>" + JSON.stringify(_knowledges) + "</knowledges>\n";
-		tmp += "<variables>" + JSON.stringify(_variables) + "</variables>\n";
-		tmp += "<objects>" + JSON.stringify(_objects) + "</objects>\n";
-		tmp += "<specialObjects>" + JSON.stringify(_specialObjects) + "</specialObjects>\n";
-		tmp += "<skills>" + JSON.stringify(_skills) + "</skills>\n";
+		tmp += "<jumpStack>" + JSON.stringify(_jumpStack) + "</jumpStack>\n";
 		tmp += "</state>";
 		return tmp;
 	}
@@ -468,15 +469,67 @@ function Book()
 	{
 		var doc = new DOMParser().parseFromString(xmlString,'text/xml');
 		_knowledges = eval('(' + doc.getElementsByTagName("knowledges")[0].textContent + ')');
-		_variables = eval('(' + doc.getElementsByTagName("variables")[0].textContent + ')');
-		_objects = eval('(' + doc.getElementsByTagName("objects")[0].textContent + ')');
-		_specialObjects = eval('(' + doc.getElementsByTagName("specialObjects")[0].textContent + ')');
-		_skills = eval('(' + doc.getElementsByTagName("skills")[0].textContent + ')');
+		_jumpStack = eval('(' + doc.getElementsByTagName("jumpStack")[0].textContent + ')');
 		_showPage(doc.getElementsByTagName("state")[0].getAttribute("currentPage"));
 	}
 
-	this.gotoPage = _gotoPage;
+	var _showMenu = function()
+	{
+		if((_menuButtons.length > 0) && ((_jumpStack.length == 0) || (_jumpStack[_jumpStack.length - 1].Type != "menu")))
+		{
+			var text = '';
+			for(var i = 0; i < _menuButtons.length; i++)
+			{
+				text += '<div class="menuButton" onclick="Book.pressButton(\'' + _menuButtons[i].Page + '\');">' +
+						'<img class="menuImage" src="' + _directory + _menuButtons[i].Image + '"></img>' +
+						'<div class="menuText">' + _menuButtons[i].Text + '</div>' +
+					'</div>';
+			}
+			$("#bookMenu").html(text);
 
+			$("#bookMenuBackground").removeClass("hide");
+			$("#bookMenu").removeClass("hide");
+
+			_menuVisible = true;
+		}
+	}
+
+	var _hideMenu = function()
+	{
+		if(_menuVisible)
+		{
+			$("#bookMenu").addClass("hide");
+			$("#bookMenuBackground").addClass("hide");
+			_menuVisible = false;
+			return true;
+		}
+		return false;
+	}
+
+	var _pressButton = function(button)
+	{
+		_jumpStack.push({ PreviousPage: currentPage, Type: "menu" });
+		_hideMenu();
+		_goToPage(button);
+	}
+
+	var _backToBook = function()
+	{
+		if((_jumpStack.length > 0) && (_jumpStack[_jumpStack.length - 1].Type == "menu"))
+		{
+			_backToPage();
+			return true;
+		}
+		return false;
+	}
+
+	this.backToBook = _backToBook;
+	this.pressButton = _pressButton;
+	this.showMenu = _showMenu;
+	this.hideMenu = _hideMenu;
+	this.goToPage = _goToPage;
+	this.jumpToPage = _jumpToPage;
+	this.backToPage = _backToPage;
 	this.start = _start;
 	this.restart = _restart;
 	this.save = _saveState;
@@ -500,24 +553,26 @@ function Library()
 	var _showBooks = function()
 	{
 		var text = '';
-		for(var i = 0; i < _books.length; i++)
+		if(_books.length == 0)
 		{
-			text += '<div class="book">';
-			text += '<div class="bookRestart" onclick="Library.startBook(\'' + _books[i].Id + '\');">' +
-					'<img class="bookImage" src="img/restart.svg"></img>' +
-				'</div>';
-			text += '<div class="bookArea" onclick="Library.continueBook(\'' + _books[i].Id + '\');">' +
-					'<img class="bookImage" src="' + LIBRARY_IMAGE_DIRECTORY + '/' + _booksData[_books[i].Id].Directory + '/' + _books[i].Image + '"></img>' +
-					'<div class="bookTextArea"><div class="bookTitle">' + _books[i].Title + '</div><div>' + _books[i].Series + '</div></div>' +
-				'</div>' +
-				'</div>';
+			text += '<div>Non sono presenti libri nella cartella gamebook della scheda SD</div>';
+		}
+		else
+		{
+			for(var i = 0; i < _books.length; i++)
+			{
+				text += '<div class="book">';
+				text += '<div class="bookRestart" onclick="Library.startBook(\'' + _books[i].Id + '\');">' +
+						'<img class="bookImage" src="img/restart.svg"></img>' +
+					'</div>';
+				text += '<div class="bookArea" onclick="Library.continueBook(\'' + _books[i].Id + '\');">' +
+						'<img class="bookImage" src="' + LIBRARY_IMAGE_DIRECTORY + '/' + _booksData[_books[i].Id].Directory + '/' + _books[i].Image + '"></img>' +
+						'<div class="bookTextArea"><div class="bookTitle">' + _books[i].Title + '</div><div>' + _books[i].Series + '</div></div>' +
+					'</div>' +
+					'</div>';
+			}
 		}
 		$("#mainPage").html(text);
-
-		text = '<div class="menuButton" onclick="Library.suspendBook();">' +
-				'<img class="menuImage" src="img/menu.svg"></img>' +
-			'</div>';
-		$("#bookMenu").html(text);
 	}
 
 	var _findBook = function(id)
@@ -669,7 +724,7 @@ function Library()
 						{
 							_deserializeLibrary(fileContent);
 						});
-					}, function() { });
+					}, function() { _updateLibrary(); });
 				});
 
 		}
@@ -683,12 +738,19 @@ function Library()
 	{
 		if(_currentBookId)
 		{
-			_booksData[_currentBookId].SaveData = Book.save();
-			$("#book").addClass("hide");
-			$("#main").removeClass("hide");
+			if(!Book.backToBook())
+			{
+				_booksData[_currentBookId].SaveData = Book.save();
+				$("#book").addClass("hide");
+				$("#main").removeClass("hide");
 
-			_saveLibrary();
+				_saveLibrary();
+
+				_currentBookId = null;
+			}
+			return true;
 		}
+		return false;
 	}
 	
 	var _startBook = function(id)
@@ -700,7 +762,8 @@ function Library()
 	var _continueBook = function(id)
 	{
 		_currentBookId = id;
-		Book.start(LIBRARY_DIRECTORY + "/" + _booksData[id].Directory + "/book.xml", LIBRARY_IMAGE_DIRECTORY + '/' + _booksData[id].Directory + '/', _booksData[id].SaveData);
+		Book.start(LIBRARY_DIRECTORY + "/" + _booksData[_currentBookId].Directory + "/book.xml", LIBRARY_IMAGE_DIRECTORY + '/' + _booksData[_currentBookId].Directory + '/', _booksData[_currentBookId].SaveData);
+
 		$("#main").addClass("hide");
 		$("#book").removeClass("hide");
 	}
@@ -734,6 +797,25 @@ function Library()
 		});
 	}
 
+	var _showMenu = function()
+	{
+		if(_currentBookId)
+		{
+			Book.showMenu();
+		}
+	}
+
+	var _hideMenu = function()
+	{
+		if(_currentBookId)
+		{
+			return Book.hideMenu();
+		}
+		return false;
+	}
+
+	this.showMenu = _showMenu;
+	this.hideMenu = _hideMenu;
 	this.updateLibrary = _updateLibrary;
 	this.startBook = _startBook;
 	this.continueBook = _continueBook;
