@@ -1,9 +1,9 @@
-function cordovaApp()
+function CordovaAppConstructor()
 {
 	var _initialize = function()
 	{
 		document.addEventListener('deviceready', _onDeviceReady, false);
-	}
+	};
 
 	var _onDeviceReady = function()
 	{
@@ -11,12 +11,12 @@ function cordovaApp()
 		document.addEventListener("backbutton", _onBackButton, false);
 
 		App.initialize(function(){ Library.start(); });
-	}
+	};
 
 	var _onMenuButton = function()
 	{
 		Library.showMenu();
-	}
+	};
 
 	var _onBackButton = function()
 	{
@@ -30,41 +30,41 @@ function cordovaApp()
 				navigator.app.exitApp();
 			}
 		}
-	}
+	};
 
 	this.initialize = _initialize;
 }
 
-cordovaApp = new cordovaApp();
+cordovaApp = new CordovaAppConstructor();
 
-function Log()
+function LogConstructor()
 {
 	var _add = function(msg)
 	{
 		//console.log(msg);
 		alert(msg);
-	}
+	};
 
 	var _debug = function(msg)
 	{
 		//console.log(msg);
 		//alert(msg);
-	}
+	};
 
 	var _error = function(msg)
 	{
 		//console.log(msg);
 		alert(msg);
-	}
+	};
 
 	this.add = _add;
 	this.debug = _debug;
 	this.error = _error;
 }
 
-Log = new Log();
+var Log = new LogConstructor();
 
-function App()
+function AppConstructor()
 {
 	var _fs;
 	var _callback;
@@ -77,7 +77,7 @@ function App()
 			window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
 			if(window.requestFileSystem)
 			{
-				window.requestFileSystem(window.PERSISTENT, 0*1024*1024, _initFS, _errorHandler);
+				window.requestFileSystem(window.PERSISTENT, 0, _initFS, _errorHandler);
 			}
 			else if(_callback)
 			{
@@ -88,7 +88,7 @@ function App()
 		{
 			Log.error("Error: " + e.message);
 		}
-	}
+	};
 
 	var _initFS = function(fs)
 	{
@@ -97,7 +97,7 @@ function App()
 		{
 			_callback();
 		}
-	}
+	};
 
 	var _errorHandler = function(err)
 	{
@@ -143,7 +143,7 @@ function App()
 				Log.error("FileError: " + error.code);
 				break;
 		}
-	}
+	};
 
 	var _existFile = function(fileName, existCallback, notexistCallback)
 	{
@@ -155,7 +155,7 @@ function App()
 		{
 			notexistCallback();
 		}
-	}
+	};
 
 	var _writeFile = function(fileName, data)
 	{
@@ -173,7 +173,7 @@ function App()
 				}, _errorHandler);
 			}, _errorHandler);
 		}
-	}
+	};
 
 	var _readFile = function(fileName, callback)
 	{
@@ -195,7 +195,7 @@ function App()
 				}, _errorHandler);
 			}, _errorHandler);
 		}
-	}
+	};
 
 	var _delteFile = function(fileName, callback)
 	{
@@ -213,7 +213,7 @@ function App()
 				}, _errorHandler);
 			}, _errorHandler);
 		}
-	}
+	};
 
 	var _existDirectory =  function(dirName, existCallback, notexistCallback)
 	{
@@ -225,7 +225,7 @@ function App()
 		{
 			notexistCallback();
 		}
-	}
+	};
 
 	var _createDirectory = function(dirName, callback)
 	{
@@ -240,7 +240,7 @@ function App()
 				}
 			}, _errorHandler);
 		}
-	}
+	};
 
 	var _deleteDirectory = function(dirName, callback)
 	{
@@ -258,7 +258,7 @@ function App()
 				}, _errorHandler);
 			}, _errorHandler);
 		}
-	}
+	};
 
 	var _listDirectory = function(dirName, callback)
 	{
@@ -286,7 +286,7 @@ function App()
 				}, _errorHandler);
 			}, _errorHandler);
 		}
-	}
+	};
 
 	var _getDirectoryURL = function(dirName, callback)
 	{
@@ -300,7 +300,7 @@ function App()
 				}
 			});
 		}
-	}
+	};
 
 	this.initialize = _initialize;
 	this.existFile = _existFile;
@@ -314,4 +314,4 @@ function App()
 	this.getDirectoryURL = _getDirectoryURL;
 }
 
-App = new App();
+var App = new AppConstructor();

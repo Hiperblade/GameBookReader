@@ -5,8 +5,14 @@
         <meta name="format-detection" content="telephone=no" />
         <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
         <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+
         <link rel="stylesheet" type="text/css" href="css/index.css" />
         <link rel="stylesheet" type="text/css" href="css/gamebook.css" />
+
+        <script type="text/javascript" src="cordova.js"></script>
+        <script type="text/javascript" src="js/jquery-1.10.2.min.js"></script>
+        <script type="text/javascript" src="js/index.js"></script>
+        <script type="text/javascript" src="js/gamebook.js"></script>
         <title>Game Book</title>
     </head>
     <body>
@@ -23,17 +29,9 @@
 		<div id="bookMenuBackground" class="menuBackground hide"></div>
 		<div id="bookMenu" class="menu hide"></div>
         </div>
-        <script type="text/javascript" src="cordova.js"></script>
-        <script type="text/javascript" src="js/jquery-1.10.2.min.js"></script>
-	<script type="text/javascript" src="js/zip/zip.js"></script>
-	<script type="text/javascript" src="js/zip/zip-ext.js"></script>
-	<script type="text/javascript" src="js/zip/zip-fs.js"></script>
-	<script type="text/javascript" src="js/zip/mime-types.js"></script>
-	<script type="text/javascript" src="js/index.js"></script>
-        <script type="text/javascript" src="js/gamebook.js"></script>
         <script type="text/javascript">
-		//Library.start(); //debug
-		cordovaApp.initialize();
+	    	//Library.start(); //debug
+    		cordovaApp.initialize();
         </script>
     </body>
 </html>

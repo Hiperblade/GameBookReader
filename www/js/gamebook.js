@@ -1,4 +1,4 @@
-function Book()
+function BookConstructor()
 {
 	var currentPage = null;
 	var _jumpStack = [];
@@ -27,12 +27,12 @@ function Book()
 
 		Destination: "page",
 		Requirements: "require",
-		Modifications: "modify",
-	}
+		Modifications: "modify"
+	};
 
 	var DefaultDestination = {
-		Jump: "jumpDestination",
-	}
+		Jump: "jumpDestination"
+	};
 
 	var _start = function(fileName, directory, saveData)
 	{
@@ -47,7 +47,6 @@ function Book()
 					xmlDoc = new DOMParser().parseFromString(fileContent,'text/xml');
 				}
 
-				var xmlS = new XMLSerializer();
 				var root = xmlDoc.firstChild;
 
 				DefaultDestination.Jump = "jumpDestination";
@@ -89,7 +88,7 @@ function Book()
 		{
 			Log.error("Start: error " + e.message);
 		}
-	}
+	};
 
 	var _restart = function()
 	{
@@ -98,19 +97,19 @@ function Book()
 		currentPage = null;
 
 		_showPage(xmlDoc.firstChild.getAttribute(TAG.StartPage));
-	}
+	};
 
 	var _findXMLPageTag = function(xmldoc, pageId)
 	{
 		var xPath = "/book/page[@id='" + pageId + "']";
 		var nodes = xmlDoc.evaluate(xPath, xmlDoc, null, XPathResult.ANY_TYPE, null);
 		return nodes.iterateNext();
-	}
+	};
 
 	var _getAttribute = function(node, attributeName)
 	{
 		return _replaceVariables(node.getAttribute(attributeName));
-	}
+	};
 
 	var _addQuote = function(value)
 	{
@@ -119,7 +118,7 @@ function Book()
 			return "'" + value + "'";
 		}
 		return value;
-	}
+	};
 
 	var _showPage = function(page)
 	{
@@ -127,7 +126,6 @@ function Book()
 		try { // debug
 
 		var root;
-		var image;
 
 		_applyModifications("§" + page);
 		root = _findXMLPageTag(xmlDoc, page);
@@ -161,22 +159,23 @@ function Book()
 		element.innerHTML = text.jumps + text.navigator;
 
 		} catch(e) { Log.debug("error: " + e.message.substring(e.message.lastIndexOf('>') + 1)); } // debug
-	}
+	};
 
 	var _renderNode = function(node, page, text)
 	{
+        var modifications;
 		switch(node.tagName)
 		{
 			case "text":
 			case "quote":
 				if(_checkRequirements(_getAttribute(node, TAG.Requirements)))
 				{
-					var modifications = _getAttribute(node, TAG.Modifications);
+					modifications = _getAttribute(node, TAG.Modifications);
 					if(_checkModificheRequirements(modifications))
 					{
 						//knowledge
 						_applyModifications(modifications);
-						image = _getAttribute(node, TAG.Image);
+						var image = _getAttribute(node, TAG.Image);
 						if(image)
 						{
 							text.page += '<div class="image"><img width="100%" src="' + _directory + image + '"></img></div>';
@@ -192,7 +191,7 @@ function Book()
 			case "jump":
 				if(_checkRequirements(_getAttribute(node, TAG.Requirements)))
 				{
-					var modifications = _getAttribute(node, TAG.Modifications);
+					modifications = _getAttribute(node, TAG.Modifications);
 					if(_checkModificheRequirements(modifications))
 					{
 						var destination = _getDestination(_getAttribute(node, TAG.Destination));
@@ -207,7 +206,7 @@ function Book()
 			case "back":
 				if(_checkRequirements(_getAttribute(node, TAG.Requirements)))
 				{
-					var modifications = _getAttribute(node, TAG.Modifications);
+					modifications = _getAttribute(node, TAG.Modifications);
 					if(_checkModificheRequirements(modifications))
 					{
 						text.jumps += '<div class="jump" onclick="Book.backToPage(' + _addQuote(modifications) + ');">' + _replaceVariables(node.textContent) + '</div>';
@@ -218,7 +217,7 @@ function Book()
 			case "action":
 				if(_checkRequirements(_getAttribute(node, TAG.Requirements)))
 				{
-					var modifications = _getAttribute(node, TAG.Modifications);
+					modifications = _getAttribute(node, TAG.Modifications);
 					if(_checkModificheRequirements(modifications))
 					{
 						var newPage = _getDestination(_getAttribute(node, TAG.Destination), page);
@@ -243,7 +242,7 @@ function Book()
 				}
 			break;
 		}
-	}
+	};
 
 	var _getDestination = function(destinations, defaultPage)
 	{
@@ -264,27 +263,27 @@ function Book()
 		{
 			return defaultPage;
 		}
-	}
+	};
 
 	var _goToPage = function(page, modifications)
 	{
 		_applyModifications(modifications);
 		_showPage(page);
-	}
+	};
 
 	var _jumpToPage = function(page, modifications)
 	{
 		_jumpStack.push({ PreviousPage: currentPage, Type: "jump" });
 		_applyModifications(modifications);
 		_showPage(page);
-	}
+	};
 
 	var _backToPage = function(modifications)
 	{
 		var jump = _jumpStack.pop();
 		_applyModifications(modifications);
 		_showPage(jump.PreviousPage);
-	}
+	};
 
 	// name(x)  ->  >= x
 	// !name(x) ->  <  x
@@ -317,7 +316,7 @@ function Book()
 			}
 		}
 		return true;
-	}
+	};
 
 	var _checkModificheRequirements = function(modifications)
 	{
@@ -333,19 +332,20 @@ function Book()
 			}
 		}
 		return true;
-	}
+	};
 
 	// name(x)  ->  +x
 	// -name(x) ->  -x
 	// =name(x) ->  =x
 	var _applyModifications = function(modifications)
 	{
+        var oldValue;
 		var tmp = _splitItem(modifications);
 		for(var i = 0; i < tmp.length; i++)
 		{
 			if(tmp[i].name[0] == '-')
 			{
-				var oldValue = _getValue(tmp[i].name.substr(1));
+				oldValue = _getValue(tmp[i].name.substr(1));
 				if(oldValue == null)
 				{
 					oldValue = -tmp[i].value;
@@ -362,7 +362,7 @@ function Book()
 			}
 			else
 			{
-				var oldValue = _getValue(tmp[i].name);
+				oldValue = _getValue(tmp[i].name);
 				if(oldValue == null)
 				{
 					oldValue = tmp[i].value;
@@ -374,12 +374,12 @@ function Book()
 				_setValue(tmp[i].name, oldValue);
 			}
 		}
-	}
+	};
 
 	var _setValue = function(name, value)
 	{
 		_knowledges[name] = value;
-	}
+	};
 
 	var _getValue = function(name)
 	{
@@ -389,14 +389,14 @@ function Book()
 			return ret;
 		}
 		return 0;
-	}
+	};
 
 	var _replaceVariables = function(data)
 	{
 		if(data != null)
 		{
 			var regEx=/\{.*?\}/g;
-			elements = data.match(regEx);
+			var elements = data.match(regEx);
 			if(elements)
 			{
 				for(var i = 0; i < elements.length; i++)
@@ -407,7 +407,7 @@ function Book()
 			}
 		}
 		return data;
-	}
+	};
 
 	var _splitItem = function(data)
 	{
@@ -425,12 +425,12 @@ function Book()
 			}
 		}
 		return ret;
-	}
+	};
 
 	var _isNumber = function(n)
 	{
 		return !isNaN(parseFloat(n)) && isFinite(n);
-	}
+	};
 
 	var _parseValue = function(id)
 	{
@@ -444,7 +444,7 @@ function Book()
 			}
 		}
 		return value;
-	}
+	};
 
 	var _parseName = function(id)
 	{
@@ -454,7 +454,7 @@ function Book()
 			name = id.substring(0, id.indexOf('('));
 		}
 		return name;
-	}
+	};
 
 	var _saveState = function()
 	{
@@ -463,7 +463,7 @@ function Book()
 		tmp += "<jumpStack>" + JSON.stringify(_jumpStack) + "</jumpStack>\n";
 		tmp += "</state>";
 		return tmp;
-	}
+	};
 
 	var _loadState = function(xmlString)
 	{
@@ -471,7 +471,7 @@ function Book()
 		_knowledges = eval('(' + doc.getElementsByTagName("knowledges")[0].textContent + ')');
 		_jumpStack = eval('(' + doc.getElementsByTagName("jumpStack")[0].textContent + ')');
 		_showPage(doc.getElementsByTagName("state")[0].getAttribute("currentPage"));
-	}
+	};
 
 	var _showMenu = function()
 	{
@@ -485,14 +485,15 @@ function Book()
 						'<div class="menuText">' + _menuButtons[i].Text + '</div>' +
 					'</div>';
 			}
-			$("#bookMenu").html(text);
+            var bookMenu = $("#bookMenu");
+            bookMenu.html(text);
 
 			$("#bookMenuBackground").removeClass("hide");
-			$("#bookMenu").removeClass("hide");
+            bookMenu.removeClass("hide");
 
 			_menuVisible = true;
 		}
-	}
+	};
 
 	var _hideMenu = function()
 	{
@@ -504,14 +505,14 @@ function Book()
 			return true;
 		}
 		return false;
-	}
+	};
 
 	var _pressButton = function(button)
 	{
 		_jumpStack.push({ PreviousPage: currentPage, Type: "menu" });
 		_hideMenu();
 		_goToPage(button);
-	}
+	};
 
 	var _backToBook = function()
 	{
@@ -521,7 +522,7 @@ function Book()
 			return true;
 		}
 		return false;
-	}
+	};
 
 	this.backToBook = _backToBook;
 	this.pressButton = _pressButton;
@@ -536,9 +537,9 @@ function Book()
 	this.load = _loadState;
 }
 
-Book = new Book();
+var Book = new BookConstructor();
 
-function Library()
+function LibraryConstructor()
 {
 	var LIBRARY_IMAGE_DIRECTORY = "file:///";
 	var LIBRARY_DIRECTORY = "gamebook";
@@ -563,7 +564,7 @@ function Library()
 			{
 				text += '<div class="book">';
 				text += '<div class="bookRestart" onclick="Library.startBook(\'' + _books[i].Id + '\');">' +
-						'<img class="bookImage" src="img/restart.svg"></img>' +
+						'<img class="bookImage" src="img/restart.svg" />' +
 					'</div>';
 				text += '<div class="bookArea" onclick="Library.continueBook(\'' + _books[i].Id + '\');">' +
 						'<img class="bookImage" src="' + LIBRARY_IMAGE_DIRECTORY + '/' + _booksData[_books[i].Id].Directory + '/' + _books[i].Image + '"></img>' +
@@ -573,7 +574,7 @@ function Library()
 			}
 		}
 		$("#mainPage").html(text);
-	}
+	};
 
 	var _findBook = function(id)
 	{
@@ -585,7 +586,7 @@ function Library()
 			}
 		}
 		return -1;
-	}
+	};
 
 	var _internalAddBook = function(id, title, series, image, directory, saveData)
 	{
@@ -600,14 +601,14 @@ function Library()
 			Id: id,
 			Title: title,
 			Series: series,
-			Image: image,
+			Image: image
 		});
 
 		_booksData[id] = {
 			Directory: directory,
-			SaveData: saveData,
+			SaveData: saveData
 		};
-	}
+	};
 
 	var _addBook = function(directory)
 	{
@@ -622,7 +623,6 @@ function Library()
 					xmlTmp = new DOMParser().parseFromString(fileContent,'text/xml');
 				}
 
-				var xmlS = new XMLSerializer();
 				var root = xmlTmp.firstChild;
 
 				_internalAddBook(
@@ -636,7 +636,7 @@ function Library()
 				_showBooks();
 			});
 		});
-	}
+	};
 
 	var _serializeLibrary = function()
 	{
@@ -647,7 +647,7 @@ function Library()
 		}
 		text += '</library>';
 		return text;
-	}
+	};
 
 	var _saveLibrary = function()
 	{
@@ -663,14 +663,14 @@ function Library()
 			else
 			{
 				//funzione non supportata
-				_debug("funzione non supportata");
+                Log.debug("funzione non supportata");
 			}
 		}
 		catch(e)
 		{
 			Log.error("Error: " + e.message);
 		}
-	}
+	};
 
 	var _deserializeLibrary = function(data)
 	{
@@ -708,7 +708,7 @@ function Library()
 		}
 
 		_updateLibrary();
-	}
+	};
 
 	var _start = function()
 	{
@@ -732,7 +732,7 @@ function Library()
 		{
 			Log.error(e.message);
 		}
-	}
+	};
 
 	var _suspendBook = function()
 	{
@@ -751,13 +751,13 @@ function Library()
 			return true;
 		}
 		return false;
-	}
+	};
 	
 	var _startBook = function(id)
 	{
 		_booksData[id].SaveData = null;
 		_continueBook(id);
-	}
+	};
 
 	var _continueBook = function(id)
 	{
@@ -766,14 +766,14 @@ function Library()
 
 		$("#main").addClass("hide");
 		$("#book").removeClass("hide");
-	}
+	};
 
 	var _updateLibrary = function()
 	{
-		var tmp = [];
+		var i;
 		App.listDirectory(LIBRARY_DIRECTORY, function(list)
 		{
-			for(var i = 0; i < list.length; i++)
+			for(i = 0; i < list.length; i++)
 			{
 				// se il libro non c'e' lo aggiungo
 				var index = _findBook(list[i]);
@@ -784,7 +784,7 @@ function Library()
 			}
 
 			// elimino i libri non piu' presenti
-			for(var i = _books.length - 1; i >= 0; i--)
+			for(i = _books.length - 1; i >= 0; i--)
 			{
 				if(list.indexOf(_books[i].Id) < 0)
 				{
@@ -795,7 +795,7 @@ function Library()
 
 			_showBooks();
 		});
-	}
+	};
 
 	var _showMenu = function()
 	{
@@ -803,7 +803,7 @@ function Library()
 		{
 			Book.showMenu();
 		}
-	}
+	};
 
 	var _hideMenu = function()
 	{
@@ -812,7 +812,7 @@ function Library()
 			return Book.hideMenu();
 		}
 		return false;
-	}
+	};
 
 	this.showMenu = _showMenu;
 	this.hideMenu = _hideMenu;
@@ -823,4 +823,4 @@ function Library()
 	this.start = _start;
 }
 
-Library = new Library();
+var Library = new LibraryConstructor();
