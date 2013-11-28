@@ -39,7 +39,7 @@ function BookConstructor()
 		try
 		{
 			_directory = directory;
-			App.readFile(fileName, function(fileContent)
+			System.readFile(fileName, function(fileContent)
 			{
 				xmlDoc = fileContent;
 				if(!xmlDoc.firstChild)

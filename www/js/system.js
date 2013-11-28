@@ -1,4 +1,4 @@
-function AppConstructor()
+function SystemConstructor()
 {
     var _fs;
     var _callback;
@@ -131,7 +131,7 @@ function AppConstructor()
         }
     };
 
-    var _delteFile = function(fileName, callback)
+    var _deleteFile = function(fileName, callback)
     {
         if(_fs)
         {
@@ -240,7 +240,7 @@ function AppConstructor()
     this.existFile = _existFile;
     this.writeFile = _writeFile;
     this.readFile = _readFile;
-    this.delteFile = _delteFile;
+    this.deleteFile = _deleteFile;
     this.existDirectory = _existDirectory;
     this.createDirectory = _createDirectory;
     this.deleteDirectory = _deleteDirectory;
@@ -248,11 +248,4 @@ function AppConstructor()
     this.getDirectoryURL = _getDirectoryURL;
 }
 
-var App = new AppConstructor();
-
-/*
- $.get( "ajax/test.html", function( data ) {
- $( ".result" ).html( data );
- alert( "Load was performed." );
- });
- */
+var System = new SystemConstructor();

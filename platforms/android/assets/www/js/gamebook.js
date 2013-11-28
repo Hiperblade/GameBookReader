@@ -33,7 +33,7 @@ function Book()
 		try
 		{
 			_directory = directory;
-			App.readFile(fileName, function(fileContent)
+			System.readFile(fileName, function(fileContent)
 			{
 				xmlDoc = fileContent;
 				if(!xmlDoc.firstChild)
@@ -557,9 +557,9 @@ function Library()
 	var _addBook = function(directory)
 	{
 		var fileName = LIBRARY_DIRECTORY + "/" + directory + "/book.xml";
-		App.existFile(fileName, function()
+		System.existFile(fileName, function()
 		{
-			App.readFile(fileName, function(fileContent)
+			System.readFile(fileName, function(fileContent)
 			{
 				var xmlTmp = fileContent;
 				if(!xmlTmp.firstChild)
@@ -600,9 +600,9 @@ function Library()
 		{
 			if(window.requestFileSystem)
 			{
-				App.createDirectory(LIBRARY_DIRECTORY, function()
+				System.createDirectory(LIBRARY_DIRECTORY, function()
 				{
-					App.writeFile(LIBRARY_FILE, _serializeLibrary());
+					System.writeFile(LIBRARY_FILE, _serializeLibrary());
 				});
 			}
 			else
@@ -659,13 +659,13 @@ function Library()
 	{
 		try
 		{
-			App.getDirectoryURL(LIBRARY_DIRECTORY, function(url)
+			System.getDirectoryURL(LIBRARY_DIRECTORY, function(url)
 				{
 				LIBRARY_IMAGE_DIRECTORY = url;
-				App.existFile(LIBRARY_FILE, 
+				System.existFile(LIBRARY_FILE,
 					function()
 					{
-						App.readFile(LIBRARY_FILE, function(fileContent)
+						System.readFile(LIBRARY_FILE, function(fileContent)
 						{
 							_deserializeLibrary(fileContent);
 						});
@@ -708,7 +708,7 @@ function Library()
 	var _updateLibrary = function()
 	{
 		var tmp = [];
-		App.listDirectory(LIBRARY_DIRECTORY, function(list)
+		System.listDirectory(LIBRARY_DIRECTORY, function(list)
 		{
 			for(var i = 0; i < list.length; i++)
 			{

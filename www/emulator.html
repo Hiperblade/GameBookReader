@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <script type="text/javascript" src="js/jquery-1.10.2.min.js"></script>
+        <script type="text/javascript">
+            function start()
+            {
+                Library.start();
+            }
+
+            function showMenu()
+            {
+                Library.showMenu();
+            }
+
+            function backMenu()
+            {
+                if(!Library.backMenu())
+                {
+                    //TODO
+                }
+            }
+
+            function initialize()
+            {
+                var BASEDIR = "emulator";
+
+                System.initialize = function(callback)
+                {
+                    if(callback)
+                    {
+                        callback();
+                    }
+                };
+
+                System.existFile = function(fileName, existCallback, notexistCallback)
+                {
+                    if(existCallback)
+                    {
+                        existCallback();
+                    }
+                };
+
+                System.writeFile = function(fileName, data)
+                {
+                };
+
+                System.readFile = function(fileName, callback)
+                {
+alert(">>> " + fileName);
+                    $.get( BASEDIR + "/" + fileName, function( data ) {
+                        if(callback)
+                        {
+                            callback( data );
+                        }
+                    });
+                };
+
+                System.deleteFile = function(fileName, callback)
+                {
+                    if(callback)
+                    {
+                        callback();
+                    }
+                };
+
+                System.existDirectory = function(dirName, existCallback /*, notexistCallback*/)
+                {
+                    if(existCallback)
+                    {
+                        existCallback();
+                    }
+                };
+
+                System.createDirectory = function(dirName, callback)
+                {
+                    if(callback)
+                    {
+                        callback();
+                    }
+                };
+
+                System.deleteDirectory = function(dirName, callback)
+                {
+                    if(callback)
+                    {
+                        callback();
+                    }
+                };
+
+                System.listDirectory = function(dirName, callback)
+                {
+                    if(callback)
+                    {
+                        callback( ["Noboros_1"] );
+                    }
+                };
+                System.getDirectoryURL = function(dirName, callback)
+                {
+                    if(callback)
+                    {
+                        callback( BASEDIR );
+                    }
+                };
+
+                start();
+            }
+        </script>
+        <style>
+            .area {
+                margin: 20px;
+            }
+
+            .d480x800 {
+                width: 480px;
+                height: 800px;
+            }
+        </style>
+
+        <title>Emulator</title>
+    </head>
+    <body>
+        <div id="main" class="area d480x800"></div>
+        <div>
+            <button onclick="showMenu();">Menu</button>
+            <button onclick="backMenu();">Back</button>
+            <!--button onclick="rotate();">Rotate</button-->
+        </div>
+        <script type="text/javascript">
+            $('#main').load('index.html', function(){ initialize(); });
+        </script>
+    </body>
+</html>

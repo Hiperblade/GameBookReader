@@ -72,9 +72,9 @@ function LibraryConstructor()
 	var _addBook = function(directory)
 	{
 		var fileName = LIBRARY_DIRECTORY + "/" + directory + "/book.xml";
-		App.existFile(fileName, function()
+		System.existFile(fileName, function()
 		{
-			App.readFile(fileName, function(fileContent)
+			System.readFile(fileName, function(fileContent)
 			{
 				var xmlTmp = fileContent;
 				if(!xmlTmp.firstChild)
@@ -114,9 +114,9 @@ function LibraryConstructor()
 		{
 			if(window.requestFileSystem)
 			{
-				App.createDirectory(LIBRARY_DIRECTORY, function()
+				System.createDirectory(LIBRARY_DIRECTORY, function()
 				{
-					App.writeFile(LIBRARY_FILE, _serializeLibrary());
+					System.writeFile(LIBRARY_FILE, _serializeLibrary());
 				});
 			}
 			else
@@ -173,13 +173,13 @@ function LibraryConstructor()
 	{
 		try
 		{
-			App.getDirectoryURL(LIBRARY_DIRECTORY, function(url)
+			System.getDirectoryURL(LIBRARY_DIRECTORY, function(url)
 				{
 				LIBRARY_IMAGE_DIRECTORY = url;
-				App.existFile(LIBRARY_FILE, 
+				System.existFile(LIBRARY_FILE,
 					function()
 					{
-						App.readFile(LIBRARY_FILE, function(fileContent)
+						System.readFile(LIBRARY_FILE, function(fileContent)
 						{
 							_deserializeLibrary(fileContent);
 						});
@@ -230,7 +230,7 @@ function LibraryConstructor()
 	var _updateLibrary = function()
 	{
 		var i;
-		App.listDirectory(LIBRARY_DIRECTORY, function(list)
+		System.listDirectory(LIBRARY_DIRECTORY, function(list)
 		{
 			for(i = 0; i < list.length; i++)
 			{
@@ -273,7 +273,22 @@ function LibraryConstructor()
 		return false;
 	};
 
+    var _backMenu = function()
+    {
+        // nascondo il menù se è aperto
+        if(!_hideMenu())
+        {
+            // sospendo il libro se è aperto
+            if(!_suspendBook())
+            {
+                return false;
+            }
+        }
+        return true;
+    };
+
 	this.showMenu = _showMenu;
+    this.backMenu = _backMenu;
 	this.hideMenu = _hideMenu;
 	this.updateLibrary = _updateLibrary;
 	this.startBook = _startBook;

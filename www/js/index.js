@@ -10,7 +10,7 @@ function CordovaAppConstructor()
 		document.addEventListener('menubutton', _onMenuButton, false);
 		document.addEventListener("backbutton", _onBackButton, false);
 
-		App.initialize(function(){ Library.start(); });
+		System.initialize(function(){ Library.start(); });
 	};
 
 	var _onMenuButton = function()
@@ -20,19 +20,15 @@ function CordovaAppConstructor()
 
 	var _onBackButton = function()
 	{
-		// nascondo il menù se è aperto
-		if(!Library.hideMenu())
+		// nascondo il menù se è aperto o sospendo il libro se è aperto
+		if(!Library.backMenu())
 		{
-			// sospendo il libro se è aperto
-			if(!Library.suspendBook())
-			{
-				// esco dall'applicazione
-				navigator.app.exitApp();
-			}
-		}
+			// esco dall'applicazione
+			navigator.app.exitApp();
+        }
 	};
 
 	this.initialize = _initialize;
 }
 
-cordovaApp = new CordovaAppConstructor();
+CordovaApp = new CordovaAppConstructor();
