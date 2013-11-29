@@ -24,6 +24,13 @@
                 }
             }
 
+            function updateSize(width, height)
+            {
+                $('#screen').css('width', width).css('height', height);
+                $('.menuBackground').css('width', width).css('height', height).css('top','20px');
+                $('.menu').css('width', width);
+            }
+
             function initialize()
             {
                 var BASEDIR = ".";
@@ -65,7 +72,7 @@
                     _addEntry(directoryName, null, true);
                 };
 
-                var _addFile = function(fileName, content, isDirectory)
+                var _addFile = function(fileName, content)
                 {
                     _addEntry(fileName, content, false);
                 };
@@ -106,7 +113,7 @@
                                     existCallback();
                                 }
                             })
-                            .fail(function(err){
+                            .fail(function(){
                                 if(notexistCallback)
                                 {
                                     notexistCallback();
@@ -242,10 +249,13 @@
                 };
 
                 start();
+
+                updateSize("480px", "800px");
             }
         </script>
         <style>
             .emulatorArea {
+                border: #333333 solid 2px;
                 margin: 20px;
                 overflow-y: scroll;
                 float: left;
@@ -259,18 +269,13 @@
             .area {
                 margin: 0;
             }
-
-            .d480x800 {
-                width: 480px;
-                height: 800px;
-            }
         </style>
 
         <title>Emulator</title>
     </head>
     <body>
         <div class="emulatorArea">
-            <div id="screen" class="d480x800">
+            <div id="screen">
                 <div id="emulator" class="area"></div>
             </div>
         </div>
