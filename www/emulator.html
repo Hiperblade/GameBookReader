@@ -25,6 +25,48 @@
             function initialize()
             {
                 var BASEDIR = "emulator";
+                var SEPARATOR = "/";
+
+                var fileSystem = {};
+
+                var _pathDecombine = function(fileName)
+                {
+                    var i = fileName.lastIndexOf(SEPARATOR);
+                    return {
+                        path: fileName.substring(0, i),
+                        name: fileName.substring(i + 1)
+                    };
+                };
+
+                var _pathCombine = function(pathName, name)
+                {
+                    return pathName + SEPARATOR + name;
+                };
+
+                var _addEntry = function(fileName, content, isDirectory)
+                {
+                    var tmp = _pathDecombine(fileName);
+                    var entry = {
+                        id: fileName,
+                        path: tmp.path,
+                        name: tmp.name,
+                        data: content,
+                        isDirectory: isDirectory || false,
+                        isDeleted: false
+                    };
+
+                    fileSystem[entry.id] = entry;
+                };
+
+                var _addDirectory = function(directoryName)
+                {
+                    _addEntry(directoryName, null, true);
+                };
+
+                var _addFile = function(fileName, content, isDirectory)
+                {
+                    _addEntry(fileName, content, false);
+                };
 
                 System.initialize = function(callback)
                 {
@@ -36,45 +78,100 @@
 
                 System.existFile = function(fileName, existCallback, notexistCallback)
                 {
-                    if(existCallback)
+                    if(fileSystem[fileName] && !fileSystem[fileName].isDeleted)
                     {
-                        existCallback();
+                        if(existCallback)
+                        {
+                            existCallback();
+                        }
+                    }
+                    else
+                    {
+                        if(notexistCallback)
+                        {
+                            notexistCallback();
+                        }
                     }
                 };
 
                 System.writeFile = function(fileName, data)
                 {
+                    if(fileSystem[fileName])
+                    {
+                        fileSystem[fileName].data = data;
+                        fileSystem[fileName].isDeleted = false;
+                    }
+                    else
+                    {
+                        _addFile(fileName, data);
+                    }
                 };
 
                 System.readFile = function(fileName, callback)
                 {
-alert(">>> " + fileName);
-                    $.get( BASEDIR + "/" + fileName, function( data ) {
+alert(">>> " + fileName); //TODO
+                    if(fileSystem[fileName])
+                    {
                         if(callback)
                         {
-                            callback( data );
+                            callback( fileSystem[fileName].data );
                         }
-                    });
+                    }
+                    else
+                    {
+                        $.get( BASEDIR + "/" + fileName, function( data ) {
+                            _addFile(fileName, data);
+                            if(callback)
+                            {
+                                callback( data );
+                            }
+                        });
+                    }
                 };
 
                 System.deleteFile = function(fileName, callback)
                 {
+                    if(!fileSystem[fileName])
+                    {
+                        _addFile(fileName, null);
+                    }
+                    fileSystem[fileName].isDeleted = true;
+
                     if(callback)
                     {
                         callback();
                     }
                 };
 
-                System.existDirectory = function(dirName, existCallback /*, notexistCallback*/)
+                System.existDirectory = function(dirName, existCallback, notexistCallback)
                 {
-                    if(existCallback)
+                    if(fileSystem[dirName] && !fileSystem[dirName].isDeleted)
                     {
-                        existCallback();
+                        if(existCallback)
+                        {
+                            existCallback();
+                        }
+                    }
+                    else
+                    {
+                        if(notexistCallback)
+                        {
+                            notexistCallback();
+                        }
                     }
                 };
 
                 System.createDirectory = function(dirName, callback)
                 {
+                    if(fileSystem[dirName])
+                    {
+                        fileSystem[dirName].isDeleted = false;
+                    }
+                    else
+                    {
+                        _addDirectory(dirName);
+                    }
+
                     if(callback)
                     {
                         callback();
@@ -83,6 +180,12 @@ alert(">>> " + fileName);
 
                 System.deleteDirectory = function(dirName, callback)
                 {
+                    if(!fileSystem[dirName])
+                    {
+                        _addDirectory(dirName);
+                    }
+                    fileSystem[dirName].isDeleted = true;
+
                     if(callback)
                     {
                         callback();
@@ -91,16 +194,29 @@ alert(">>> " + fileName);
 
                 System.listDirectory = function(dirName, callback)
                 {
+                    var ret = [];
+                    for(var id in fileSystem)
+                    {
+                        if(fileSystem.hasOwnProperty(id))
+                        {
+                            var entry = fileSystem[id];
+                            if(entry.path == dirName)
+                            {
+                                ret.push(entry.name);
+                            }
+                        }
+                    }
                     if(callback)
                     {
-                        callback( ["Noboros_1"] );
+                        callback( ret );
                     }
                 };
+
                 System.getDirectoryURL = function(dirName, callback)
                 {
                     if(callback)
                     {
-                        callback( BASEDIR );
+                        callback( _pathCombine(BASEDIR, dirName) );
                     }
                 };
 
