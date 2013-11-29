@@ -112,7 +112,7 @@ function LibraryConstructor()
 	{
 		try
 		{
-			if(window.requestFileSystem)
+            if(System.supportFileSystem())
 			{
 				System.createDirectory(LIBRARY_DIRECTORY, function()
 				{

@@ -236,6 +236,12 @@ function SystemConstructor()
         }
     };
 
+    var _supportFileSystem = function()
+    {
+        return (window.requestFileSystem);
+    }
+
+    this.supportFileSystem = _supportFileSystem;
     this.initialize = _initialize;
     this.existFile = _existFile;
     this.writeFile = _writeFile;
