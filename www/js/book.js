@@ -41,7 +41,7 @@ function BookConstructor()
 			_directory = directory;
 			System.readFile(fileName, function(fileContent)
 			{
-				xmlDoc = fileContent;
+                xmlDoc = fileContent;
 				if(!xmlDoc.firstChild)
 				{
 					xmlDoc = new DOMParser().parseFromString(fileContent,'text/xml');

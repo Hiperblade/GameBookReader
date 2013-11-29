@@ -6,6 +6,8 @@
         <script type="text/javascript">
             function start()
             {
+                System.createDirectory("gamebook/Noboros_1");
+
                 Library.start();
             }
 
@@ -24,7 +26,7 @@
 
             function initialize()
             {
-                var BASEDIR = "emulator";
+                var BASEDIR = ".";
                 var SEPARATOR = "/";
 
                 var fileSystem = {};
@@ -78,19 +80,38 @@
 
                 System.existFile = function(fileName, existCallback, notexistCallback)
                 {
-                    if(fileSystem[fileName] && !fileSystem[fileName].isDeleted)
+                    if(fileSystem[fileName])
                     {
-                        if(existCallback)
+                        if(fileSystem[fileName].isDeleted)
                         {
-                            existCallback();
+                            if(notexistCallback)
+                            {
+                                notexistCallback();
+                            }
+                        }
+                        else
+                        {
+                            if(existCallback)
+                            {
+                                existCallback();
+                            }
                         }
                     }
                     else
                     {
-                        if(notexistCallback)
-                        {
-                            notexistCallback();
-                        }
+                        $.get( _pathCombine(BASEDIR, fileName))
+                            .done(function(){
+                                if(existCallback)
+                                {
+                                    existCallback();
+                                }
+                            })
+                            .fail(function(err){
+                                if(notexistCallback)
+                                {
+                                    notexistCallback();
+                                }
+                            });
                     }
                 };
 
@@ -109,7 +130,6 @@
 
                 System.readFile = function(fileName, callback)
                 {
-alert(">>> " + fileName); //TODO
                     if(fileSystem[fileName])
                     {
                         if(callback)
@@ -119,7 +139,7 @@ alert(">>> " + fileName); //TODO
                     }
                     else
                     {
-                        $.get( BASEDIR + "/" + fileName, function( data ) {
+                        $.get( _pathCombine(BASEDIR, fileName), function( data ) {
                             _addFile(fileName, data);
                             if(callback)
                             {
@@ -206,6 +226,7 @@ alert(">>> " + fileName); //TODO
                             }
                         }
                     }
+
                     if(callback)
                     {
                         callback( ret );
@@ -224,8 +245,19 @@ alert(">>> " + fileName); //TODO
             }
         </script>
         <style>
-            .area {
+            .emulatorArea {
                 margin: 20px;
+                overflow-y: scroll;
+                float: left;
+            }
+
+            .controlPanel {
+                margin: 20px;
+                float: left;
+            }
+
+            .area {
+                margin: 0;
             }
 
             .d480x800 {
@@ -237,14 +269,18 @@ alert(">>> " + fileName); //TODO
         <title>Emulator</title>
     </head>
     <body>
-        <div id="main" class="area d480x800"></div>
-        <div>
+        <div class="emulatorArea">
+            <div id="screen" class="d480x800">
+                <div id="emulator" class="area"></div>
+            </div>
+        </div>
+        <div class="controlPanel">
             <button onclick="showMenu();">Menu</button>
             <button onclick="backMenu();">Back</button>
             <!--button onclick="rotate();">Rotate</button-->
         </div>
         <script type="text/javascript">
-            $('#main').load('index.html', function(){ initialize(); });
+            $('#emulator').load('index.html', function(){ initialize(); });
         </script>
     </body>
 </html>

@@ -23,13 +23,13 @@ function LibraryConstructor()
 			{
 				text += '<div class="book">';
 				text += '<div class="bookRestart" onclick="Library.startBook(\'' + _books[i].Id + '\');">' +
-						'<img class="bookImage" src="img/restart.svg" />' +
-					'</div>';
+						    '<img class="bookImage" src="img/restart.svg" />' +
+					    '</div>';
 				text += '<div class="bookArea" onclick="Library.continueBook(\'' + _books[i].Id + '\');">' +
-						'<img class="bookImage" src="' + LIBRARY_IMAGE_DIRECTORY + '/' + _booksData[_books[i].Id].Directory + '/' + _books[i].Image + '"></img>' +
-						'<div class="bookTextArea"><div class="bookTitle">' + _books[i].Title + '</div><div>' + _books[i].Series + '</div></div>' +
-					'</div>' +
-					'</div>';
+						    '<img class="bookImage" src="' + LIBRARY_IMAGE_DIRECTORY + '/' + _booksData[_books[i].Id].Directory + '/' + _books[i].Image + '"></img>' +
+						    '<div class="bookTextArea"><div class="bookTitle">' + _books[i].Title + '</div><div>' + _books[i].Series + '</div></div>' +
+					    '</div>' +
+					    '</div>';
 			}
 		}
 		$("#mainPage").html(text);
@@ -221,6 +221,7 @@ function LibraryConstructor()
 	var _continueBook = function(id)
 	{
 		_currentBookId = id;
+
 		Book.start(LIBRARY_DIRECTORY + "/" + _booksData[_currentBookId].Directory + "/book.xml", LIBRARY_IMAGE_DIRECTORY + '/' + _booksData[_currentBookId].Directory + '/', _booksData[_currentBookId].SaveData);
 
 		$("#main").addClass("hide");
