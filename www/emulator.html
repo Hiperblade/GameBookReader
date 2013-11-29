@@ -6,9 +6,14 @@
         <script type="text/javascript">
             function start()
             {
-                System.createDirectory("gamebook/Noboros_1");
+                $('#emulator').load('index.html', function()
+                    {
+                        initialize();
 
-                Library.start();
+                        System.createDirectory("gamebook/Noboros_1");
+                        Library.start();
+                        updateSize();
+                    });
             }
 
             function showMenu()
@@ -20,23 +25,45 @@
             {
                 if(!Library.backMenu())
                 {
-                    //TODO
+                    $('#emulator').html('<button class="startButton" style="left: ' + (currentWidth/2) + 'px; top: ' + (currentHeight/2) + 'px;" onclick="start();">Start</button>');
                 }
             }
 
-            function updateSize(width, height)
+            var currentWidth = 480;
+            var currentHeight = 800;
+
+            function updateSize()
             {
-                $('#screen').css('width', width).css('height', height);
-                $('.menuBackground').css('width', width).css('height', height).css('top','20px');
-                $('.menu').css('width', width);
+                $('#screen').css('width', currentWidth + 'px').css('height', currentHeight + 'px');
+                $('.menuBackground').css('width', currentWidth + 'px').css('height', currentHeight + 'px').css('top','20px');
+                $('.menu').css('width', currentWidth + 'px');
+
+                var startButton = $('.startButton');
+                if(startButton)
+                {
+                    startButton.css('left', (currentWidth/2) + 'px').css('top', (currentHeight/2) + 'px');
+                }
             }
+
+            function rotate()
+            {
+                setSize(currentHeight, currentWidth);
+            }
+
+            function setSize(width, height)
+            {
+                currentWidth = width;
+                currentHeight = height;
+
+                updateSize();
+            }
+
+            var fileSystem = {};
 
             function initialize()
             {
                 var BASEDIR = ".";
                 var SEPARATOR = "/";
-
-                var fileSystem = {};
 
                 var _pathDecombine = function(fileName)
                 {
@@ -248,26 +275,39 @@
                     }
                 };
 
-                start();
-
-                updateSize("480px", "800px");
+                System.supportFileSystem = function()
+                {
+                    return true;
+                };
             }
         </script>
         <style>
-            .emulatorArea {
+            .emulatorArea
+            {
                 border: #333333 solid 2px;
                 margin: 20px;
                 overflow-y: scroll;
                 float: left;
             }
 
-            .controlPanel {
+            .controlPanel
+            {
                 margin: 20px;
                 float: left;
             }
 
-            .area {
+            .area
+            {
                 margin: 0;
+            }
+
+            .startButton
+            {
+                width: 100px;
+                height: 100px;
+                margin-left: -50px;
+                margin-top: -50px;
+                position:relative;
             }
         </style>
 
@@ -282,10 +322,10 @@
         <div class="controlPanel">
             <button onclick="showMenu();">Menu</button>
             <button onclick="backMenu();">Back</button>
-            <!--button onclick="rotate();">Rotate</button-->
+            <button onclick="rotate();">Rotate</button>
         </div>
         <script type="text/javascript">
-            $('#emulator').load('index.html', function(){ initialize(); });
+            $('#emulator').load('index.html', function(){ initialize(); start() });
         </script>
     </body>
 </html>
